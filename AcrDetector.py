@@ -5,7 +5,10 @@
 AcrFinder: A tool to determine anti-CRISPR proteins in the whole genome-scale
 
 Version 1.0
-Author: Chuand Dong (chuand@uchicago.edu)
+Author: Chuand Dong 
+Email: chuand@uchicago.edu and chuand@cefg.cn
+
+Please contact me if you find bugs or any other questions when using the script
 '''
 
 import pandas as pd
@@ -76,7 +79,7 @@ def codonDistance(gene2seq):
         sequence=gene2seq[i]
         i_codon=codonFreq(sequence)
         distance=np.linalg.norm(genome_codon-i_codon)
-        gene2distance[i]=str(distance)
+        gene2distance[i]=distance
     return gene2distance
 
 def geneDownstreamHth(geneIDs, gene2strand, gene2chr, chr2gene, hthSearchResult):
@@ -121,11 +124,11 @@ def geneDownstreamHth(geneIDs, gene2strand, gene2chr, chr2gene, hthSearchResult)
                 else:
                     tmp.append(1)
             if "1" in tmp:
-                gene2hth[i]="1"
+                gene2hth[i]=1
             else:
-                gene2hth[i]="0"
+                gene2hth[i]=0
         else:
-            gene2hth[i]="0"
+            gene2hth[i]=0
     return gene2hth
 
 def deviation(gene2distance):
@@ -138,7 +141,7 @@ def deviation(gene2distance):
             if gene2distance[i]>gene2distance[j]:
                 large_num=large_num+1
         dev=large_num/comparisions
-        gene2dev[i]=str(dev)
+        gene2dev[i]=dev
     return gene2dev
 
 def extractFeatures(infile, outfile):
@@ -183,10 +186,10 @@ def extractFeatures(infile, outfile):
                 gene2chr[protein]=chromosome
                 gene2seq[protein]=seq
                 if proteinFunc in ["[protein=hypothetical protein]","[protein=Uncharacterised protein]","[protein=putative uncharacterized protein]"]:
-                    gene2func[protein]="1"
+                    gene2func[protein]=1
                 else:
-                    gene2func[protein]="0"
-                gene2len[protein]=str(len(seq))
+                    gene2func[protein]=0
+                gene2len[protein]=len(seq)
                 gene2strand[protein]=strand
                 if chromosome not in chr2gene.keys():
                     chr2gene[chromosome]=[protein]
@@ -206,8 +209,31 @@ def extractFeatures(infile, outfile):
     gene2dev=deviation(gene2distance)
     features=[]
     for i in geneIDs:
+        chromosome_i=gene2chr[i]
+        chromosome_genes=chr2gene[chromosome_i]
+        i_index=chromosome_genes.index(i)
+        chrGenesNum=len(chromosome_genes)-1
+        if i_index==0:
+            geneI5=chromosome_genes[1]
+            geneI3=chromosome_genes[2]
+        elif i_index==chrGenesNum:
+            geneI5=chromosome_genes[i_index-1]
+            geneI3=chromosome_genes[i_index-2]
+        else:
+            geneI5=chromosome_genes[i_index-1]
+            geneI3=chromosome_genes[i_index+1]
         func=gene2func[i]
-        i_feature=[int(gene2len[i]), int(gene2func[i]), float(gene2distance[i]), float(gene2dev[i]), int(gene2hth[i])]
+        dev_i5=gene2dev[geneI5]
+        dev_i3=gene2dev[geneI3]
+        len_i5=gene2len[geneI5]
+        len_i3=gene2len[geneI3]
+        strand_i=gene2strand[i]
+        if strand_i==gene2strand[geneI5] or strand_i==gene2strand[geneI3]:
+            codirection=1
+        else:
+            codirection=0
+        i_feature=[codirection,len_i5,gene2len[i],len_i3, gene2func[i],\
+                gene2distance[i],dev_i5, gene2dev[i],dev_i3, gene2hth[i]]
         features.append(i_feature)
     features=np.array(features)
     rf = load('{0}/rf.joblib'.format(modelHthdb))
@@ -216,35 +242,13 @@ def extractFeatures(infile, outfile):
     acr_index=np.where(y_prediction==1)
     acr_index=acr_index[0]
     y_prediction_probability=list(y_prediction_probability)
-    # random forest results
     for i_index in acr_index:
         acr_id=geneIDs[i_index]
-        result=[acr_id, gene2len[acr_id], gene2func[acr_id], gene2distance[acr_id], gene2dev[acr_id], gene2hth[acr_id],str(y_prediction_probability[i_index][1])]
+        result=[acr_id, gene2len[acr_id], gene2func[acr_id], gene2distance[acr_id],\
+                gene2dev[acr_id], gene2hth[acr_id],y_prediction_probability[i_index][1]]
+        result=map(str, result)
         result="\t".join(result)
         OUT.write(result+"\n")
-
-    recoveredAcr=[]
-    for i_index in range(0,len(geneIDs)):
-        acr_id=geneIDs[i_index]
-        length=gene2len[acr_id]
-        func=gene2func[acr_id]
-        distance=gene2distance[acr_id]
-        dev=gene2dev[acr_id]
-        hth=gene2hth[acr_id]
-        probability=y_prediction_probability[i_index][1]
-        if 0.05>=probability>=0.02 and func=="1" and float(dev)>=0.8:
-            adjust_probability=1-probability
-            if adjust_probability>=0.8:
-                recoveredAcr.append({"acr_id":acr_id,"length":length,\
-                        "func":func,"distance":distance,\
-                        "dev":dev,"hth":hth,"probability":adjust_probability})
-    if recoveredAcr:
-        OUT.write("\n#Recovered Acrs\n")
-        sortRecoveredAcr=sorted(recoveredAcr, key=lambda x:x['probability'], reverse=True)
-        for i in sortRecoveredAcr:
-            result=[i["acr_id"],i["length"],i["func"],i["distance"],i["dev"],i["hth"],str(i["probability"])]
-            result="\t".join(result)
-            OUT.write(result+"\n")
     OUT.close()
 
 if __name__ == "__main__":
