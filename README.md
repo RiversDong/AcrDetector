@@ -37,6 +37,8 @@
     re_domain and re_tbl: hth domain. hmmscan results in different formats
     re_protein: translated protein from CDS region
 
-	There are 7 colums
-	ID	length	function("1" means unknow function)	codon distance	dev	hth("1" hth in the downstream)
+	There are 2 colums
+    Acr id and Probability estimation
+    All Acrs are ranked according to the probability
+
 
