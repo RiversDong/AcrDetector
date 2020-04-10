@@ -239,16 +239,20 @@ def extractFeatures(infile, outfile):
     rf = load('{0}/rf.joblib'.format(modelHthdb))
     y_prediction = rf.predict(features)
     y_prediction_probability=rf.predict_proba(features)
-    acr_index=np.where(y_prediction==1)
-    acr_index=acr_index[0]
     y_prediction_probability=list(y_prediction_probability)
-    for i_index in acr_index:
+    probability_range=range(0,len(y_prediction_probability))
+    acr_rank_tmp=[]
+    for i_index in probability_range:
         acr_id=geneIDs[i_index]
-        result=[acr_id, gene2len[acr_id], gene2func[acr_id], gene2distance[acr_id],\
-                gene2dev[acr_id], gene2hth[acr_id],y_prediction_probability[i_index][1]]
-        result=map(str, result)
-        result="\t".join(result)
-        OUT.write(result+"\n")
+        probability=y_prediction_probability[i_index][1]
+        if probability>0:
+            acr_rank_tmp.append({"acr_id":acr_id,"probability":probability})
+    acr_rank=sorted(acr_rank_tmp,key=lambda x:x['probability'], reverse=True)
+    if acr_rank_tmp:
+        for i in acr_rank:
+            result=[i["acr_id"],str(i["probability"])]
+            result="\t".join(result)
+            OUT.write(result+"\n")
     OUT.close()
 
 if __name__ == "__main__":
