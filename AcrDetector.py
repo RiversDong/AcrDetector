@@ -6,7 +6,7 @@ AcrFinder: A tool to determine anti-CRISPR proteins in the whole genome-scale
 
 Version 1.0
 Author: Chuand Dong 
-Email: chuand@uchicago.edu and chuand@cefg.cn
+Email: chuand@uchicago.edu and chuand.dong@gmail.com
 
 Please contact me if you find bugs or any other questions when using the script
 '''
@@ -208,6 +208,7 @@ def extractFeatures(infile, outfile):
     gene2hth=geneDownstreamHth(geneIDs, gene2strand, gene2chr, chr2gene, outHth)
     gene2dev=deviation(gene2distance)
     features=[]
+    gene2feature={}
     for i in geneIDs:
         chromosome_i=gene2chr[i]
         chromosome_genes=chr2gene[chromosome_i]
@@ -235,6 +236,8 @@ def extractFeatures(infile, outfile):
         i_feature=[codirection,len_i5,gene2len[i],len_i3, gene2func[i],\
                 gene2distance[i],dev_i5, gene2dev[i],dev_i3, gene2hth[i]]
         features.append(i_feature)
+        str_feature=map(str,i_feature)
+        gene2feature[i]="\t".join(str_feature)
     features=np.array(features)
     rf = load('{0}/rf.joblib'.format(modelHthdb))
     y_prediction = rf.predict(features)
@@ -248,9 +251,13 @@ def extractFeatures(infile, outfile):
         if probability>0:
             acr_rank_tmp.append({"acr_id":acr_id,"probability":probability})
     acr_rank=sorted(acr_rank_tmp,key=lambda x:x['probability'], reverse=True)
+    title_info=['Accession', 'Codirection', 'LNL', 'TL', 'RNL',\
+            'Function', 'codon distance', 'LDev', 'TDev', 'RDev', 'HTH', 'Score']
+    OUT.write("\t".join(title_info)+"\n")
     if acr_rank_tmp:
         for i in acr_rank:
-            result=[i["acr_id"],str(i["probability"])]
+            acr_accession=i["acr_id"]
+            result=[acr_accession,gene2feature[acr_accession],str(i["probability"])]
             result="\t".join(result)
             OUT.write(result+"\n")
     OUT.close()
