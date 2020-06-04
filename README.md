@@ -37,8 +37,28 @@
     re_domain and re_tbl: hth domain. hmmscan results in different formats
     re_protein: translated protein from CDS region
 
-	There are 2 colums
-    Acr id and Probability estimation
-    All Acrs are ranked according to the probability
+	There are 12 colums spaced by tab in re
 
+    Codirection
+	1: target gene and one of its neighbor gene are on the same strand
+	0: target gene and both of its neighbors aren't in the same strand
 
+    LNL: left neighbor length of target gene
+    TL: target gene length
+    RNL: right neighbor length of target gene
+
+    Function
+        1: annotated as hypothetical protein, Uncharacterized protein, uncharacterized protein in NCBI
+        0: annotated as validated function
+
+    codon distance: codon distance against whole genome
+    LDev: codon usage deviation of left neighbor gene compared with whole genome
+    TDev: codon usage deviation of target gene compared with whole genome
+    RDev: codon usage deviation of right neighbor gene compared with whole genome
+
+    HTH:
+        "1": there is an HTH domain within 3 downstream genes of target gene based on the HTH Pfam_V32
+        "0": No HTH domain within 3 downstream genes of target gene based on the HTH Pfam_V32
+
+    Score:
+        Probability estimation
