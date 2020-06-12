@@ -1,4 +1,5 @@
 # Notice
+    The script runs on Linux system
     Do not change and delete any files in AcrDetector
 
 # Requirement
