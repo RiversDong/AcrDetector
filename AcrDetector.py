@@ -215,8 +215,9 @@ def extractFeatures(infile, outfile):
         i_index=chromosome_genes.index(i)
         chrGenesNum=len(chromosome_genes)-1
         if i_index==0:
-            geneI5=chromosome_genes[1]
-            geneI3=chromosome_genes[2]
+            if len(chromosome_genes)>=3:
+                geneI5=chromosome_genes[1]
+                geneI3=chromosome_genes[2]
         elif i_index==chrGenesNum:
             geneI5=chromosome_genes[i_index-1]
             geneI3=chromosome_genes[i_index-2]
