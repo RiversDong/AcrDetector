@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-AcrFinder: A tool to determine anti-CRISPR proteins in the whole genome-scale
+AcrDetector: A tool to determine anti-CRISPR proteins in the whole genome-scale
 
 Version 1.0
 Author: Chuand Dong 
