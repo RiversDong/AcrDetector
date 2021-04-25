@@ -63,3 +63,5 @@
 
     Score:
         Probability estimation
+# QA
+    If you find bugs, please let me know chuand@whu.edu.cn
