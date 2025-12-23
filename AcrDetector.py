@@ -4,7 +4,7 @@
 '''
 AcrDetector: A tool to determine anti-CRISPR proteins in the whole genome-scale
 
-Version 1.1
+Test Version 1.1
 Author: Chuand Dong 
 Email: chuand@uchicago.edu and chuand.dong@gmail.com
 
